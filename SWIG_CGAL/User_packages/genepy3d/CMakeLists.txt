@@ -1,0 +1,1 @@
+ADD_SWIG_CGAL_PYTHON_MODULE  (genepy3d)
