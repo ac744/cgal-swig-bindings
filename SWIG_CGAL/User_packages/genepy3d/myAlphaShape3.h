@@ -22,7 +22,8 @@ typedef K::Triangle_3                                       Triangle;
 typedef Alpha_shape_3::Alpha_iterator                    Alpha_iterator;
 typedef Alpha_shape_3::NT                                NT;
 
-void getAlphaShape(Wrapper_iterator_helper<Point_3>::input point_range, Wrapper_iterator_helper<Point_3>::output pointsOut,Wrapper_iterator_helper<Triangle_3>::output triOut){
+float getOptimalAlphaShape(Wrapper_iterator_helper<Point_3>::input point_range, Wrapper_iterator_helper<Point_3>::output pointsOut,Wrapper_iterator_helper<Triangle_3>::output triOut){
+
   typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
 
   Delaunay dt;
@@ -49,6 +50,40 @@ void getAlphaShape(Wrapper_iterator_helper<Point_3>::input point_range, Wrapper_
   std::list<Alpha_shape_3::Facet> outFacetsList;
   std::list<Alpha_shape_3::Facet>::iterator it3;
   as.get_alpha_shape_facets(std::back_inserter(outFacetsList),Alpha_shape_3::REGULAR,*opt);
+  
+  for (it3=outFacetsList.begin();it3!=outFacetsList.end();it3++){
+        *triOut++=dt.triangle(*it3);
+
+  }
+
+  return *opt;
+}
+void getAlphaShape(Wrapper_iterator_helper<Point_3>::input point_range, Wrapper_iterator_helper<Point_3>::output pointsOut,Wrapper_iterator_helper<Triangle_3>::output triOut, float alpha){
+
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
+
+  Delaunay dt;
+  for (Iterator it=point_range.first; it!=point_range.second; ++it){
+    dt.insert(*it);
+  }
+  Alpha_shape_3 as(dt);
+
+  as.set_alpha(alpha);
+  assert(as.number_of_solid_components() == 1);
+
+  //Output of coordinates of vertex in the alpha shape
+  std::list<Alpha_shape_3::Vertex_handle> outPointsList;
+  std::list<Alpha_shape_3::Vertex_handle>::iterator it2;
+  as.get_alpha_shape_vertices(std::back_inserter(outPointsList),Alpha_shape_3::REGULAR,alpha);
+
+  for (it2=outPointsList.begin();it2!=outPointsList.end();it2++){
+        *pointsOut++=(*it2)->point();
+  }
+
+  //Output of the triangles
+  std::list<Alpha_shape_3::Facet> outFacetsList;
+  std::list<Alpha_shape_3::Facet>::iterator it3;
+  as.get_alpha_shape_facets(std::back_inserter(outFacetsList),Alpha_shape_3::REGULAR,alpha);
   
   for (it3=outFacetsList.begin();it3!=outFacetsList.end();it3++){
         *triOut++=dt.triangle(*it3);
